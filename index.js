@@ -55,9 +55,9 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(` Backend server running on https://digiba-backend-production.up.railway.app:${PORT}`);
-  console.log(` API endpoints available at https://digiba-backend-production.up.railway.app:${PORT}/api/*`);
-  console.log(` Register: POST https://digiba-backend-production.up.railway.app:${PORT}/api/auth/register/vendor`);
+  console.log(` Backend server running on https://digiba-backend-production.up.railway.app:${4000}`);
+  console.log(` API endpoints available at https://digiba-backend-production.up.railway.app:${4000}/api/*`);
+  console.log(` Register: POST https://digiba-backend-production.up.railway.app:${4000}/api/auth/register/vendor`);
 });
 
 app.use('/uploads', express.static('uploads'));
