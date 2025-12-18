@@ -11,7 +11,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
@@ -55,9 +55,9 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(` Backend server running on https://digiba-backend-production.up.railway.app:${PORT}`);
-  console.log(` API endpoints available at https://digiba-backend-production.up.railway.app:${PORT}/api/*`);
-  console.log(` Register: POST https://digiba-production.up.railway.app:${PORT}/api/auth/register/vendor`);
+  console.log(` Backend server running on https://digiba-backend-production.up.railway.app:${4000}`);
+  console.log(` API endpoints available at https://digiba-backend-production.up.railway.app:${4000}/api/*`);
+  console.log(` Register: POST https://digiba-backend-production.up.railway.app:${4000}/api/auth/register/vendor`);
 });
 
 app.use('/uploads', express.static('uploads'));
