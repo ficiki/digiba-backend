@@ -56,7 +56,7 @@ app.use((err, req, res, next) => {
 
 console.log('Environment PORT value:', process.env.PORT);
 console.log('Using PORT:', PORT);
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(` Backend server running on digiba-backend-production.up.railway.app:${PORT}`);
   console.log(` API endpoints available at digiba-backend-production.up.railway.app:${PORT}/api/*`);
   console.log(` Register: POST digiba-backend-production.up.railway.app:${PORT}/api/auth/register/vendor`);
