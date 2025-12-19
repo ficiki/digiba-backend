@@ -54,7 +54,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(` Backend server running on digiba-backend-production.up.railway.app:${PORT}`);
   console.log(` API endpoints available at digiba-backend-production.up.railway.app:${PORT}/api/*`);
   console.log(` Register: POST digiba-backend-production.up.railway.app:${PORT}/api/auth/register/vendor`);
