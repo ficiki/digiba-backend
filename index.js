@@ -15,24 +15,26 @@ const notificationsRoutes = require("./routes/notifications");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-/* ===============================
-   1️⃣ CORS CONFIG (PALING ATAS)
-================================ */
+/* =====================================================
+   1️⃣ CORS CONFIG (WAJIB PALING ATAS)
+===================================================== */
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://storied-dango-ac0686.netlify.app"
+  "http://localhost:3000",
+  "https://storied-dango-ac0686.netlify.app",
+  "https://digiba-asah.netlify.app"
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (Postman, curl)
+    origin: (origin, callback) => {
+      // Allow Postman / curl / server-to-server
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
+        return callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(new Error("Not allowed by CORS"));
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -41,23 +43,23 @@ app.use(
   })
 );
 
-// HANDLE PREFLIGHT REQUEST
+// HANDLE PREFLIGHT REQUEST (INI KUNCI FIX ERROR KAMU)
 app.options("*", cors());
 
-/* ===============================
+/* =====================================================
    2️⃣ BODY PARSER
-================================ */
+===================================================== */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ===============================
+/* =====================================================
    3️⃣ SECURITY
-================================ */
+===================================================== */
 app.use(helmet());
 
-/* ===============================
+/* =====================================================
    4️⃣ RATE LIMIT
-================================ */
+===================================================== */
 const isDevelopment = process.env.NODE_ENV === "development";
 
 const apiLimiter = rateLimit({
@@ -72,14 +74,14 @@ const apiLimiter = rateLimit({
 
 app.use(apiLimiter);
 
-/* ===============================
+/* =====================================================
    5️⃣ STATIC FILES
-================================ */
+===================================================== */
 app.use("/uploads", express.static("uploads"));
 
-/* ===============================
+/* =====================================================
    6️⃣ ROUTES
-================================ */
+===================================================== */
 app.use("/api/auth", authRoutes);
 app.use("/api/bapb", bapbRoutes);
 app.use("/api/bapp", bappRoutes);
@@ -87,9 +89,9 @@ app.use("/api/documents", docsRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationsRoutes);
 
-/* ===============================
+/* =====================================================
    7️⃣ HEALTH CHECK
-================================ */
+===================================================== */
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -98,9 +100,9 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-/* ===============================
+/* =====================================================
    8️⃣ GLOBAL ERROR HANDLER
-================================ */
+===================================================== */
 app.use((err, req, res, next) => {
   console.error("ERROR:", err.message);
 
@@ -116,10 +118,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-/* ===============================
+/* =====================================================
    9️⃣ START SERVER
-================================ */
+===================================================== */
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "production"}`);
+  console.log(`🌍 Allowed origins:`);
+  allowedOrigins.forEach((o) => console.log(`   - ${o}`));
 });
