@@ -15,73 +15,75 @@ const notificationsRoutes = require("./routes/notifications");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-/* =====================================================
-   1️⃣ CORS CONFIG (WAJIB PALING ATAS)
-===================================================== */
+/* =======================
+   1️⃣ CORS CONFIG
+======================= */
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:3000",
+  "https://digiba-asah.netlify.app",
   "https://storied-dango-ac0686.netlify.app",
-  "https://digiba-asah.netlify.app"
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow Postman / curl / server-to-server
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      } else {
-        return callback(new Error("Not allowed by CORS"));
       }
+      return callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-// HANDLE PREFLIGHT REQUEST (INI KUNCI FIX ERROR KAMU)
-app.options("*", cors());
+/* =======================
+   2️⃣ PREFLIGHT FIX (NO CRASH)
+======================= */
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,DELETE,OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    return res.sendStatus(204);
+  }
+  next();
+});
 
-/* =====================================================
-   2️⃣ BODY PARSER
-===================================================== */
+/* =======================
+   3️⃣ BODY PARSER
+======================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* =====================================================
-   3️⃣ SECURITY
-===================================================== */
+/* =======================
+   4️⃣ SECURITY
+======================= */
 app.use(helmet());
 
-/* =====================================================
-   4️⃣ RATE LIMIT
-===================================================== */
-const isDevelopment = process.env.NODE_ENV === "development";
-
+/* =======================
+   5️⃣ RATE LIMIT
+======================= */
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 menit
-  max: isDevelopment ? 5000 : 3000,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    message: "Terlalu banyak permintaan, silakan coba lagi nanti.",
-  },
+  windowMs: 15 * 60 * 1000,
+  max: 3000,
 });
-
 app.use(apiLimiter);
 
-/* =====================================================
-   5️⃣ STATIC FILES
-===================================================== */
+/* =======================
+   6️⃣ STATIC
+======================= */
 app.use("/uploads", express.static("uploads"));
 
-/* =====================================================
-   6️⃣ ROUTES
-===================================================== */
+/* =======================
+   7️⃣ ROUTES
+======================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/bapb", bapbRoutes);
 app.use("/api/bapp", bappRoutes);
@@ -89,40 +91,27 @@ app.use("/api/documents", docsRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationsRoutes);
 
-/* =====================================================
-   7️⃣ HEALTH CHECK
-===================================================== */
+/* =======================
+   8️⃣ HEALTH CHECK
+======================= */
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Backend running successfully",
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ status: "OK" });
 });
 
-/* =====================================================
-   8️⃣ GLOBAL ERROR HANDLER
-===================================================== */
+/* =======================
+   9️⃣ ERROR HANDLER
+======================= */
 app.use((err, req, res, next) => {
   console.error("ERROR:", err.message);
-
   if (err.message === "Not allowed by CORS") {
-    return res.status(403).json({
-      message: "CORS error: Origin not allowed",
-    });
+    return res.status(403).json({ message: "CORS blocked" });
   }
-
-  res.status(500).json({
-    message: "Internal server error",
-    error: err.message,
-  });
+  res.status(500).json({ message: "Server error" });
 });
 
-/* =====================================================
-   9️⃣ START SERVER
-===================================================== */
+/* =======================
+   🔟 START SERVER
+======================= */
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
-  console.log(`🌍 Allowed origins:`);
-  allowedOrigins.forEach((o) => console.log(`   - ${o}`));
 });
