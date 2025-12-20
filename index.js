@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
@@ -15,75 +14,64 @@ const notificationsRoutes = require("./routes/notifications");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-/* =======================
-   1️⃣ CORS CONFIG
-======================= */
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://digiba-asah.netlify.app",
-  "https://storied-dango-ac0686.netlify.app",
-];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
-
-/* =======================
-   2️⃣ PREFLIGHT FIX (NO CRASH)
-======================= */
+/* =================================================
+   1️⃣ GLOBAL CORS HANDLER (PALING ATAS)
+   INI KUNCI UTAMA FIX KAMU
+================================================= */
 app.use((req, res, next) => {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://digiba-asah.netlify.app",
+  ];
+
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  // ⛔ HANDLE PREFLIGHT DI SINI
   if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Origin", req.headers.origin);
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,DELETE,OPTIONS"
-    );
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
     return res.sendStatus(204);
   }
+
   next();
 });
 
-/* =======================
-   3️⃣ BODY PARSER
-======================= */
+/* =================================================
+   2️⃣ BODY PARSER
+================================================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* =======================
-   4️⃣ SECURITY
-======================= */
+/* =================================================
+   3️⃣ SECURITY
+================================================= */
 app.use(helmet());
 
-/* =======================
-   5️⃣ RATE LIMIT
-======================= */
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 3000,
-});
-app.use(apiLimiter);
+/* =================================================
+   4️⃣ RATE LIMIT
+================================================= */
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 3000,
+  })
+);
 
-/* =======================
-   6️⃣ STATIC
-======================= */
-app.use("/uploads", express.static("uploads"));
-
-/* =======================
-   7️⃣ ROUTES
-======================= */
+/* =================================================
+   5️⃣ ROUTES
+================================================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/bapb", bapbRoutes);
 app.use("/api/bapp", bappRoutes);
@@ -91,27 +79,31 @@ app.use("/api/documents", docsRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationsRoutes);
 
-/* =======================
-   8️⃣ HEALTH CHECK
-======================= */
+/* =================================================
+   6️⃣ HEALTH
+================================================= */
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
-/* =======================
-   9️⃣ ERROR HANDLER
-======================= */
+/* =================================================
+   7️⃣ 404 HANDLER (WAJIB ADA!)
+================================================= */
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+/* =================================================
+   8️⃣ ERROR HANDLER
+================================================= */
 app.use((err, req, res, next) => {
-  console.error("ERROR:", err.message);
-  if (err.message === "Not allowed by CORS") {
-    return res.status(403).json({ message: "CORS blocked" });
-  }
+  console.error(err);
   res.status(500).json({ message: "Server error" });
 });
 
-/* =======================
-   🔟 START SERVER
-======================= */
+/* =================================================
+   9️⃣ START
+================================================= */
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
 });
